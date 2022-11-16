@@ -295,12 +295,7 @@ if (utils.isRun) {
           publicPath: `${config.publicPath}`,
         },
       ],
-      client: {
-        overlay: {
-          warnings: false,
-          errors: true,
-        },
-      },
+      client: false,
       historyApiFallback: false,
       https: false,
       hot: false,

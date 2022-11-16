@@ -79,6 +79,9 @@ if (nodeAction === 'run') {
   const runServer = async () => {
     await server.start();
   };
+  if (module.hot) {
+    module.hot.accept();
+  }
   runServer();
 } else {
   console.log('');
@@ -91,9 +94,6 @@ if (nodeAction === 'run') {
     .then((res) => {
       const compiler = Webpack(webpackConfig);
       compiler.run((err, stats) => {
-        if (module.hot) {
-          module.hot.accept();
-        }
         compiler.close((closeErr) => {
           if (err) {
             console.log('Webpack compiler encountered a fatal error.', err);
