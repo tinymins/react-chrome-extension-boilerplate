@@ -1,22 +1,19 @@
 import React, { Component } from 'react';
 
-import icon from '../../assets/images/icon-128.png';
+import styles from './index.module.less';
 
 class GreetingComponent extends Component {
-  state = {
+  public state = {
     name: 'dev',
   };
 
-  render() {
+  public render() {
     return (
       <div>
         <p>
-          Hello,
-          { ' ' }
-          { this.state.name }
-          !
+          { `Hello, ${this.state.name}!` }
         </p>
-        <img src={icon} alt="extension icon" />
+        <img className={styles.icon} alt="extension icon" />
       </div>
     );
   }

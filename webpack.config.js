@@ -39,17 +39,21 @@ const stats = utils.isProd
 
 let skipInstruction = false;
 
-const notHotReload = new Set(['background', 'content-script', 'devtools-loader']);
+const notHotReload = new Set([
+  'background-script',
+  'content-script',
+  'devtools-loader',
+]);
 
 /** @type {webpack.Configuration[]} */
 const webpackConfigs = [{
   entry: {
-    options: utils.fullPath('src/pages/options/index.tsx'),
-    popup: utils.fullPath('src/pages/popup/index.tsx'),
-    background: utils.fullPath('src/pages/background/index.ts'),
-    'content-script': utils.fullPath('src/pages/content-script/index.ts'),
-    'devtools-loader': utils.fullPath('src/pages/devtools-loader/index.ts'),
-    'devtools-panel': utils.fullPath('src/pages/devtools-panel/index.tsx'),
+    'background-script': utils.fullPath('src/scripts/background/index.ts'),
+    'content-script': utils.fullPath('src/scripts/content/index.ts'),
+    'devtools-loader': utils.fullPath('src/app/devtools-loader/index.ts'),
+    'options-app': utils.fullPath('src/app/options/index.tsx'),
+    'popup-app': utils.fullPath('src/app/popup/index.tsx'),
+    'devtools-app': utils.fullPath('src/app/devtools/index.tsx'),
   },
   output: {
     filename: '[name].bundle.js',
@@ -131,7 +135,7 @@ const webpackConfigs = [{
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: 'src/pages/content-script/content.styles.css',
+          from: 'src/scripts/content/content.styles.css',
           to: config.distPath,
           force: true,
         },
@@ -156,27 +160,27 @@ const webpackConfigs = [{
       ],
     }),
     new HtmlWebpackPlugin({
-      template: utils.fullPath('src/pages/options/index.html'),
-      filename: 'options.html',
-      chunks: ['options'],
+      template: utils.fullPath('src/app/options/index.html'),
+      filename: 'options-app.html',
+      chunks: ['options-app'],
       cache: false,
     }),
     new HtmlWebpackPlugin({
-      template: utils.fullPath('src/pages/popup/index.html'),
-      filename: 'popup.html',
-      chunks: ['popup'],
+      template: utils.fullPath('src/app/popup/index.html'),
+      filename: 'popup-app.html',
+      chunks: ['popup-app'],
       cache: false,
     }),
     new HtmlWebpackPlugin({
-      template: utils.fullPath('src/pages/devtools-loader/index.html'),
+      template: utils.fullPath('src/app/devtools-loader/index.html'),
       filename: 'devtools-loader.html',
       chunks: ['devtools-loader'],
       cache: false,
     }),
     new HtmlWebpackPlugin({
-      template: utils.fullPath('src/pages/devtools-panel/index.html'),
-      filename: 'devtools-panel.html',
-      chunks: ['devtools-panel'],
+      template: utils.fullPath('src/app/devtools/index.html'),
+      filename: 'devtools-app.html',
+      chunks: ['devtools-app'],
       cache: false,
     }),
     new webpack.ContextReplacementPlugin(

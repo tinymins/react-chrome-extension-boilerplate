@@ -158,9 +158,9 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': 'off',
       },
     },
-    // entries
+    // app entries
     {
-      files: ['src/pages/*/index.tsx'],
+      files: ['src/app/*/index.tsx'],
       rules: { 'unicorn/prefer-module': 'off' },
     },
     // utils

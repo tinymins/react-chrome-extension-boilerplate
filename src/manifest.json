@@ -2,10 +2,10 @@
   "manifest_version": 3,
   "name": "React Chrome Extension Boilerplate",
   "description": "A react boilerplate for building chrome extension.",
-  "options_page": "options.html",
-  "background": { "service_worker": "background.bundle.js" },
+  "options_page": "options-app.html",
+  "background": { "service_worker": "background-script.bundle.js" },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "popup-app.html",
     "default_icon": "icon-34.png"
   },
   "icons": {

@@ -1,13 +1,11 @@
-import './index.css';
-
 import React from 'react';
-import { render } from 'react-dom';
 
-import Options from './options';
+import styles from './index.module.less';
 
-render(
-  <Options title="Settings" />,
-  window.document.querySelector('#app-container'),
+const OptionsPage: React.FC = () => (
+  <div className={styles['options-container']}>
+    Options Page
+  </div>
 );
 
-if (module.hot) { module.hot.accept(); }
+export default OptionsPage;
