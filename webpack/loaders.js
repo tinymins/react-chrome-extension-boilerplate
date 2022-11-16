@@ -129,7 +129,7 @@ const staticLoaders = () => [
       },
     },
     generator: {
-      filename: 'static/[contenthash][ext]',
+      filename: 'asset/[contenthash][ext]',
     },
   },
   {
@@ -141,7 +141,7 @@ const staticLoaders = () => [
       },
     },
     generator: {
-      filename: 'static/[contenthash][ext]',
+      filename: 'asset/[contenthash][ext]',
     },
   },
 ];

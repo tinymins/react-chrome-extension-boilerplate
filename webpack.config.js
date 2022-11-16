@@ -56,8 +56,8 @@ const webpackConfigs = [{
     'devtools-app': utils.fullPath('src/app/devtools/index.tsx'),
   },
   output: {
-    filename: '[name].bundle.js',
-    chunkFilename: 'chunks/[name].[chunkhash:4].js',
+    filename: 'js/[name].bundle.js',
+    chunkFilename: 'js/[name].[chunkhash:4].js',
     path: config.distPath,
     clean: true,
     publicPath: `${config.publicPath}/`,
@@ -136,16 +136,7 @@ const webpackConfigs = [{
       patterns: [
         {
           from: 'src/scripts/content/content.styles.css',
-          to: config.distPath,
-          force: true,
-        },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: 'src/assets/images/icon-128.png',
-          to: config.distPath,
+          to: path.join(config.distPath, 'css'),
           force: true,
         },
       ],
@@ -154,7 +145,16 @@ const webpackConfigs = [{
       patterns: [
         {
           from: 'src/assets/images/icon-34.png',
-          to: config.distPath,
+          to: path.join(config.distPath, 'asset'),
+          force: true,
+        },
+      ],
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'src/assets/images/icon-128.png',
+          to: path.join(config.distPath, 'asset'),
           force: true,
         },
       ],
@@ -403,8 +403,8 @@ if (config.speedMeasureReport && !utils.isRun) {
 // https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/167#issuecomment-1040022776
 webpackConfig.plugins.push(
   new MiniCssExtractPlugin({
-    filename: '[name].[chunkhash:4].css',
-    chunkFilename: 'style/[name].[chunkhash:4].css',
+    filename: 'css/[name].[chunkhash:4].css',
+    chunkFilename: 'css/[name].[chunkhash:4].css',
     ignoreOrder: true,
   }),
 );
