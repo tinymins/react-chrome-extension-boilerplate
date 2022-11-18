@@ -398,7 +398,7 @@ if (config.speedMeasureReport && !utils.isRun) {
 // https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/167#issuecomment-1040022776
 webpackConfig.plugins.push(
   new MiniCssExtractPlugin({
-    filename: 'css/[name].[chunkhash:4].css',
+    filename: 'css/[name].bundle.css',
     chunkFilename: 'css/[name].[chunkhash:4].css',
     ignoreOrder: true,
   }),
