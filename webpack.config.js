@@ -14,10 +14,13 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const moment = require('moment');
+const MomentLocalesWebpackPlugin = require('moment-locales-webpack-plugin');
 const path = require('path');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
+const WebpackAssetsManifest = require('webpack-assets-manifest');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const merge = require('webpack-merge').merge;
 const WebpackBar = require('webpackbar');
@@ -26,6 +29,12 @@ const config = require('./config');
 const loaders = require('./webpack/loaders');
 const plugins = require('./webpack/plugins');
 const utils = require('./webpack/utils');
+
+const PUBLIC_PATHNAME = config.publicPath.replace(/https?:\/\/[^/]+/u, '');
+
+const currentTime = Date.now();
+const BUILD_TIMESTAMP = String(currentTime);
+const BUILD_TIME_STRING = moment(currentTime).format('YYYY/MM/DD HH:mm:ss');
 
 // https://webpack.js.org/configuration/stats/
 const stats = utils.isProd
@@ -60,7 +69,7 @@ const webpackConfigs = [{
     chunkFilename: 'js/[name].[chunkhash:4].js',
     path: config.distPath,
     clean: true,
-    publicPath: `${config.publicPath}/`,
+    publicPath: config.publicPath,
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.tx', '.json'],
@@ -91,11 +100,35 @@ const webpackConfigs = [{
   plugins: [
     // util requires this internally
     new webpack.ProvidePlugin({ process: 'process/browser' }),
+    // To strip all locales except “en” and “zh-cn”
+    // (“en” is built into Moment and can’t be removed)
+    new MomentLocalesWebpackPlugin({
+      localesToKeep: ['zh-cn'],
+    }),
     // new CaseSensitivePathsPlugin(),
     new WebpackBar({
-      name: utils.isProd ? 'Prod' : 'Dev',
+      name: `${config.chromeExt ? 'ChromeExt' : 'Client'}-${utils.isProd ? 'Prod' : 'Dev'}`,
       color: utils.isProd ? '#569fff' : '#0dbc79',
     }),
+    // new webpack.ProgressPlugin({ percentBy: 'entries' }),
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: process.env.NODE_ENV,
+      NODE_ACTION: process.env.NODE_ACTION,
+      API_GATEWAY: process.env.API_GATEWAY || '',
+      BUILD_TIMESTAMP,
+      BUILD_TIME_STRING,
+    }),
+    new webpack.ContextReplacementPlugin(
+      /@babel\/standalone/u,
+      (data) => {
+        for (const d of data.dependencies) {
+          if (d.critical === 'the request of a dependency is an expression') {
+            delete d.critical;
+          }
+        }
+        return data;
+      },
+    ),
     /**
      * All files inside webpack's output.path directory will be removed once, but the
      * directory itself will not be. If using webpack 4+'s default configuration,
@@ -108,11 +141,6 @@ const webpackConfigs = [{
      * See `Options and Defaults` for information
      */
     new CleanWebpackPlugin({ verbose: false }),
-    // new webpack.ProgressPlugin({ percentBy: 'entries' }),
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: process.env.NODE_ENV,
-      NODE_ACTION: process.env.NODE_ACTION,
-    }),
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -183,17 +211,6 @@ const webpackConfigs = [{
       chunks: ['devtools-app'],
       cache: false,
     }),
-    new webpack.ContextReplacementPlugin(
-      /@babel\/standalone/u,
-      (data) => {
-        for (const d of data.dependencies) {
-          if (d.critical === 'the request of a dependency is an expression') {
-            delete d.critical;
-          }
-        }
-        return data;
-      },
-    ),
     // Webpack plugin that runs TypeScript type checker on a separate process.
     new ForkTsCheckerWebpackPlugin(),
   ],
@@ -288,18 +305,18 @@ if (utils.isRun) {
       static: [
         {
           directory: path.join(config.distPath, 'static'),
-          publicPath: `${config.publicPath}/static`,
+          publicPath: `${PUBLIC_PATHNAME}static`,
         },
         {
           directory: config.distPath,
-          publicPath: `${config.publicPath}`,
+          publicPath: PUBLIC_PATHNAME,
         },
       ],
       client: false,
       historyApiFallback: false,
       https: false,
       hot: false,
-      host: '127.0.0.1',
+      host: '0.0.0.0',
       port: config.debugPort,
       allowedHosts: 'all',
       headers: {
@@ -307,7 +324,7 @@ if (utils.isRun) {
       },
       proxy: {},
       devMiddleware: {
-        publicPath: `${config.publicPath}/`,
+        publicPath: PUBLIC_PATHNAME,
         stats,
         writeToDisk: true,
       },
@@ -339,6 +356,12 @@ if (utils.isRun) {
             noErrorOnMissing: true,
           },
         ],
+      }),
+      new WebpackAssetsManifest({
+        transform: (assets, manifest) => ({
+          publicPath: config.publicPath,
+        }),
+        output: 'json/manifest.json',
       }),
     ],
   });
