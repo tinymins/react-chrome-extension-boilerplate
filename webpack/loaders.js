@@ -9,11 +9,6 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const utils = require('./utils');
 
-const cacheLoader = path => ({
-  loader: 'cache-loader',
-  options: { cacheDirectory: utils.fullPath(`./node_modules/.cache/cache-loader/${utils.isProd ? 'prod' : 'dev'}/${path}`) },
-});
-
 const threadLoader = {
   loader: 'thread-loader',
   options: {
@@ -63,9 +58,6 @@ const styleLoaders = (options = {}) => {
         'postcss-loader',
       ],
     };
-    if (options.cache !== false) {
-      rule.use.unshift(cacheLoader(`${extension}-loader`));
-    }
     if (!options.onlyLocals) {
       rule.use.unshift(devLoader);
     }
@@ -77,7 +69,7 @@ const styleLoaders = (options = {}) => {
   return cssRules;
 };
 
-const scriptLoaders = (options = {}) => {
+const scriptLoaders = () => {
   const srcIncludes = [utils.fullPath('src')];
   const jsLoader = {
     include: srcIncludes,
@@ -105,12 +97,6 @@ const scriptLoaders = (options = {}) => {
       threadLoader,
     ],
   };
-  // eslint has problems with cache loader
-  // https://github.com/webpack-contrib/cache-loader/issues/72
-  if (options.cache !== false) {
-    jsLoader.use.unshift(cacheLoader('babel-loader'));
-    tsLoader.use.unshift(cacheLoader('ts-loader'));
-  }
   return [jsLoader, tsLoader];
 };
 

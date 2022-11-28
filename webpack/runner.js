@@ -6,45 +6,10 @@
  * @copyright: Copyright (c) 2018 TINYMINS.
  */
 
-const process = require('process');
-const yargs = require('yargs');
-const { hideBin } = require('yargs/helpers');
-
-/**
- * Check params
- */
-const ACTION_LIST = ['run', 'build'];
-const ENV_LIST = ['development', 'production'];
-
-const argv = yargs(hideBin(process.argv)).argv;
-
-const nodeAction = argv.action;
-const nodeEnv = argv.env || { run: 'development', build: 'production' }[nodeAction];
-const report = argv.report;
-const useESLint = argv.eslint !== false;
-const useStyleLint = argv.stylelint !== false;
-const traceDeprecation = argv.traceDeprecation;
-const traceWarnings = argv.traceWarnings;
-
-if (!ACTION_LIST.includes(nodeAction)) {
-  console.error(`Invalid NODE_ACTION: ${nodeAction}, NODE_ACTION should be in ${ACTION_LIST.join(', ')}.`);
-  throw new Error('Invalid NODE_ACTION');
-}
-if (!ENV_LIST.includes(nodeEnv)) {
-  console.error(`Invalid NODE_ENV: ${nodeEnv}, NODE_ENV should be in ${ENV_LIST.join(', ')}.`);
-  throw new Error('Invalid NODE_ENV');
-}
-
 /**
  * Set environments
  */
-process.env.NODE_ACTION = nodeAction;
-process.env.NODE_ENV = nodeEnv;
-process.env.REPORT = report ? 'Y' : 'N';
-process.env.ESLINT = useESLint ? 'Y' : 'N';
-process.env.STYLELINT = useStyleLint ? 'Y' : 'N';
-process.traceDeprecation = traceDeprecation;
-process.traceWarnings = traceWarnings;
+require('./env').init();
 
 /**
  * Require must after set environments
@@ -69,44 +34,41 @@ if (!webpackConfig) {
  * Start runner
  */
 
-console.log(chalk.cyan.bold(`TypeScript Version: ${ts.version}`));
+const start = () => {
+  console.log(chalk.cyan.bold(`TypeScript Version: ${ts.version}`));
 
-if (nodeAction === 'run') {
-  const WebpackDevServer = require('webpack-dev-server');
-  const compiler = Webpack(webpackConfig);
-  const devServerOptions = webpackConfig.devServer;
-  const server = new WebpackDevServer(devServerOptions, compiler);
-  const runServer = async () => {
-    await server.start();
-  };
-  if (module.hot) {
-    module.hot.accept();
-  }
-  runServer();
-} else {
-  console.log('');
-  console.log('$ rm -rf dist');
-  rm(webpackConfig.output.path)
-    .catch((error) => {
-      console.log(chalk.red.bold('error: rm dist failed!'));
-      throw error;
-    })
-    .then((res) => {
-      const compiler = Webpack(webpackConfig);
-      compiler.run((err, stats) => {
-        compiler.close((closeErr) => {
-          if (err) {
-            console.log('Webpack compiler encountered a fatal error.', err);
-            throw err;
-          }
-          if (closeErr) {
-            console.log('Webpack compiler encountered a fatal error on close.', closeErr);
-            throw err;
-          }
-          console.log(stats.toString(webpackConfig.stats));
+  if (process.env.NODE_ACTION === 'run') {
+    const WebpackDevServer = require('webpack-dev-server');
+    const compiler = Webpack(webpackConfig);
+    const devServerOptions = webpackConfig.devServer;
+    new WebpackDevServer(devServerOptions, compiler).start();
+  } else {
+    console.log('');
+    console.log(`$ rm -rf ${process.env.DIST_PATH}`);
+    rm(process.env.DIST_PATH)
+      .catch((error) => {
+        console.log(chalk.red.bold('error: rm dist failed!'));
+        throw error;
+      })
+      .then((res) => {
+        const compiler = Webpack(webpackConfig);
+        compiler.run((err, stats) => {
+          compiler.close((closeErr) => {
+            if (err) {
+              console.log('Webpack compiler encountered a fatal error.', err);
+              throw err;
+            }
+            if (closeErr) {
+              console.log('Webpack compiler encountered a fatal error on close.', closeErr);
+              throw err;
+            }
+            console.log(stats.toString(webpackConfig.stats));
+          });
         });
-      });
-      return res;
-    })
-    .catch((error) => { throw error; });
-}
+        return res;
+      })
+      .catch((error) => { throw error; });
+  }
+};
+
+start();

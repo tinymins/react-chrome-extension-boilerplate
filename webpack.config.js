@@ -6,6 +6,14 @@
  * @copyright: Copyright (c) 2018 TINYMINS.
  */
 
+/**
+ * Set environments (fallback to build)
+ */
+require('./webpack/env').fallback(['build']);
+
+/**
+ * Require must after set environments
+ */
 const chalk = require('chalk');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -25,12 +33,11 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const merge = require('webpack-merge').merge;
 const WebpackBar = require('webpackbar');
 
-const config = require('./config');
 const loaders = require('./webpack/loaders');
 const plugins = require('./webpack/plugins');
 const utils = require('./webpack/utils');
 
-const PUBLIC_PATHNAME = config.publicPath.replace(/https?:\/\/[^/]+/u, '');
+const PUBLIC_PATHNAME = process.env.PUBLIC_PATH.replace(/https?:\/\/[^/]+/u, '');
 
 const currentTime = Date.now();
 const BUILD_TIMESTAMP = String(currentTime);
@@ -65,11 +72,11 @@ const webpackConfigs = [{
     'devtools-app': utils.fullPath('src/app/devtools/index.tsx'),
   },
   output: {
+    path: process.env.DIST_PATH,
     filename: 'js/[name].bundle.js',
     chunkFilename: 'js/[name].[chunkhash:4].js',
-    path: config.distPath,
+    publicPath: process.env.PUBLIC_PATH,
     clean: true,
-    publicPath: config.publicPath,
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.tx', '.json'],
@@ -84,7 +91,7 @@ const webpackConfigs = [{
   },
   module: {
     rules: [
-      ...loaders.scriptLoaders({ cache: !config.useESLint }),
+      ...loaders.scriptLoaders(),
       ...loaders.styleLoaders({ extract: true }),
       ...loaders.staticLoaders(),
     ],
@@ -107,7 +114,7 @@ const webpackConfigs = [{
     }),
     // new CaseSensitivePathsPlugin(),
     new WebpackBar({
-      name: `${config.chromeExt ? 'ChromeExt' : 'Client'}-${utils.isProd ? 'Prod' : 'Dev'}`,
+      name: `${utils.isProd ? 'Production' : 'Development'}: ${process.env.BUILD_TARGET}`,
       color: utils.isProd ? '#569fff' : '#0dbc79',
     }),
     // new webpack.ProgressPlugin({ percentBy: 'entries' }),
@@ -145,7 +152,7 @@ const webpackConfigs = [{
       patterns: [
         {
           from: 'src/manifest.json',
-          to: config.distPath,
+          to: './',
           force: true,
           transform(content, contentPath) {
             // generates the manifest file using the package.json information
@@ -164,7 +171,7 @@ const webpackConfigs = [{
       patterns: [
         {
           from: 'src/scripts/content/content.styles.css',
-          to: path.join(config.distPath, 'css'),
+          to: './css',
           force: true,
         },
       ],
@@ -173,7 +180,7 @@ const webpackConfigs = [{
       patterns: [
         {
           from: 'src/assets/images/icon-34.png',
-          to: path.join(config.distPath, 'asset'),
+          to: './asset',
           force: true,
         },
       ],
@@ -182,7 +189,7 @@ const webpackConfigs = [{
       patterns: [
         {
           from: 'src/assets/images/icon-128.png',
-          to: path.join(config.distPath, 'asset'),
+          to: './asset',
           force: true,
         },
       ],
@@ -304,11 +311,11 @@ if (utils.isRun) {
     devServer: {
       static: [
         {
-          directory: path.join(config.distPath, 'static'),
+          directory: path.join(__dirname, 'static'),
           publicPath: `${PUBLIC_PATHNAME}static`,
         },
         {
-          directory: config.distPath,
+          directory: process.env.DIST_PATH,
           publicPath: PUBLIC_PATHNAME,
         },
       ],
@@ -317,7 +324,7 @@ if (utils.isRun) {
       https: false,
       hot: false,
       host: '0.0.0.0',
-      port: config.debugPort,
+      port: process.env.PORT,
       allowedHosts: 'all',
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -359,7 +366,7 @@ if (utils.isRun) {
       }),
       new WebpackAssetsManifest({
         transform: (assets, manifest) => ({
-          publicPath: config.publicPath,
+          publicPath: process.env.PUBLIC_PATH,
         }),
         output: 'json/manifest.json',
       }),
@@ -367,7 +374,7 @@ if (utils.isRun) {
   });
 }
 
-if (config.useESLint) {
+if (process.env.ESLINT !== 'N') {
   webpackConfigs.push({
     plugins: [
       plugins.eslintPlugin({
@@ -378,7 +385,7 @@ if (config.useESLint) {
   });
 }
 
-if (config.useStyleLint) {
+if (process.env.STYLELINT !== 'N') {
   webpackConfigs.push({
     plugins: [
       plugins.stylelintPlugin({
@@ -388,7 +395,7 @@ if (config.useStyleLint) {
   });
 }
 
-if (config.bundleAnalyzerReport && !utils.isRun) {
+if (process.env.REPORT === 'Y' && !utils.isRun) {
   webpackConfigs.push({
     plugins: [
       new BundleAnalyzerPlugin({
@@ -405,14 +412,14 @@ if (utils.isRun) {
     if (!notHotReload.has(entryName)) {
       webpackConfig.entry[entryName] = [
         'webpack/hot/dev-server',
-        `webpack-dev-server/client?hot=true&hostname=localhost&port=${config.debugPort}`,
+        `webpack-dev-server/client?hot=true&hostname=localhost&port=${process.env.PORT}`,
         ...Array.isArray(webpackConfig.entry[entryName]) ? webpackConfig.entry[entryName] : [webpackConfig.entry[entryName]],
       ];
     }
   }
 }
 
-if (config.speedMeasureReport && !utils.isRun) {
+if (process.env.REPORT === 'Y' && !utils.isRun) {
   const smp = new SpeedMeasurePlugin();
   webpackConfig = smp.wrap(webpackConfig);
 }
