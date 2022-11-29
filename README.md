@@ -29,7 +29,7 @@ For WSL users, here's a trick you can develop in a linux sub system with hot rel
 1. In WSL
 
     ```sh
-    DIST_PATH="/mnt/d/react-chrome-extension-boilerplate-dist" npm start
+    npm start -- --distPath="/mnt/d/react-chrome-extension-boilerplate-dist"
     ```
 
 2. In chrome: Load unpack extension from `D:/react-chrome-extension-boilerplate-dist`

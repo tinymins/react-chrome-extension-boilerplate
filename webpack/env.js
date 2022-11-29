@@ -50,7 +50,7 @@ const init = (args) => {
     .option('publicPath', {
       nargs: 1,
       describe: 'Webpack public path',
-      default: '/boilerplate/',
+      default: '/',
     })
     .option('routerMode', {
       nargs: 1,
