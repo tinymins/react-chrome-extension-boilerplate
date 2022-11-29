@@ -45,7 +45,7 @@ const init = (args) => {
       nargs: 1,
       describe: 'Runner environment',
       choices: ['h5-app', 'chrome-ext'],
-      default: 'h5-app',
+      default: 'chrome-ext',
     })
     .option('publicPath', {
       nargs: 1,

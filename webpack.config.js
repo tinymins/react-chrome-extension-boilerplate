@@ -351,7 +351,9 @@ if (utils.isRun) {
       },
     },
   });
-} else {
+}
+
+if (!utils.isRun || process.env.BUILD_TARGET === 'chrome-ext') {
   webpackConfigs.push({
     plugins: [
       new CopyWebpackPlugin({
